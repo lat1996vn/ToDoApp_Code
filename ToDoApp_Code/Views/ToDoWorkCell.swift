@@ -8,7 +8,13 @@
 
 import UIKit
 
+protocol ToDoWorkCellDelegate: AnyObject {
+    func tapCompleted()
+}
+
 class ToDoWorkCell: UITableViewCell {
+    
+    weak var delegate: ToDoWorkCellDelegate?
 
     let lblCreatedDate: UILabel = {
         let label = UILabel()
@@ -25,14 +31,6 @@ class ToDoWorkCell: UITableViewCell {
         label.translatesAutoresizingMaskIntoConstraints = false
         
         return label
-    } ()
-    
-    let btnCheckBoxIsDone: UIButton = {
-        let button = UIButton()
-        button.setImage(UIImage(named: "icon_unchecked"), for: .normal)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        
-        return button
     } ()
     
     let lblCompletedDate: UILabel = {
@@ -58,7 +56,7 @@ class ToDoWorkCell: UITableViewCell {
         self.addSubview(lblCreatedDate)
         
         NSLayoutConstraint.activate([
-            lblCreatedDate.topAnchor.constraint(equalTo: self.topAnchor, constant: 5),
+            lblCreatedDate.topAnchor.constraint(equalTo: self.topAnchor, constant: 10),
             lblCreatedDate.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 10),
 //            lblCreatedDate.bottomAnchor.constraint(equalTo: lblCreatedDate.topAnchor, constant: 10)
             ])
@@ -67,46 +65,46 @@ class ToDoWorkCell: UITableViewCell {
         
         NSLayoutConstraint.activate([
             lblWorkTitle.leadingAnchor.constraint(equalTo: lblCreatedDate.leadingAnchor, constant: 0),
-            lblWorkTitle.topAnchor.constraint(equalTo: lblCreatedDate.bottomAnchor, constant: 5)
+            lblWorkTitle.topAnchor.constraint(equalTo: lblCreatedDate.bottomAnchor, constant: 5),
+            lblWorkTitle.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant:  -10)
             ])
         
-        self.addSubview(btnCheckBoxIsDone)
+//        self.addSubview(btnCheckBoxIsDone)
+//
+//        NSLayoutConstraint.activate([
+//            btnCheckBoxIsDone.widthAnchor.constraint(equalToConstant: 28),
+//            btnCheckBoxIsDone.heightAnchor.constraint(equalToConstant: 28),
+//            btnCheckBoxIsDone.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+//            btnCheckBoxIsDone.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -15)
+//            ])
         
-        NSLayoutConstraint.activate([
-            btnCheckBoxIsDone.widthAnchor.constraint(equalToConstant: 28),
-            btnCheckBoxIsDone.heightAnchor.constraint(equalToConstant: 28),
-            btnCheckBoxIsDone.centerYAnchor.constraint(equalTo: self.centerYAnchor),
-            btnCheckBoxIsDone.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -15)
-            ])
-        
-        btnCheckBoxIsDone.addTarget(self, action: #selector(checkBoxIsDoneTapped), for: .touchUpInside)
+//        btnCheckBoxIsDone.addTarget(self, action: #selector(checkBoxIsDoneTapped), for: .touchUpInside)
     }
     
     @objc func checkBoxIsDoneTapped() {
-        print("Tap")
+        delegate?.tapCompleted()
     }
     
     func configCell(toDoWork: ToDoWork) {
-        print("inCel")
         lblCreatedDate.text = toDoWork.createdDate
         lblWorkTitle.text = toDoWork.workTitle
-        if toDoWork.isDone {
-            btnCheckBoxIsDone.isHidden = true
-            lblCompletedDate.isHidden = false
-            lblCompletedDate.text = toDoWork.completedDate
-        } else {
-            btnCheckBoxIsDone.isHidden = false
-            lblCompletedDate.isHidden = true
-        }
+//        if toDoWork.isDone {
+//            btnCheckBoxIsDone.isHidden = true
+//            lblCompletedDate.isHidden = false
+//            lblCompletedDate.text = toDoWork.completedDate
+//        } else {
+//            btnCheckBoxIsDone.isHidden = false
+//            lblCompletedDate.isHidden = true
+//        }
     }
     
-    func layoutToDoWorkCell() {
-
-    }
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        layoutToDoWorkCell()
-    }
-    
+//    func layoutToDoWorkCell() {
+//
+//    }
+//    override func layoutSubviews() {
+//        super.layoutSubviews()
+//        layoutToDoWorkCell()
+//    }
+//
     
 }

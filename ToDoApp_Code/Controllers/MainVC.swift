@@ -8,11 +8,18 @@
 
 import UIKit
 
-class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+class MainVC: UIViewController, UITableViewDataSource, UITableViewDelegate {
    
+    // MARK: - Variables
     let workListTableView: UITableView = {
         let tableView = UITableView()
         return tableView
+    } ()
+    
+    let btnAddItem: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(#imageLiteral(resourceName: "icon_plus"), for: .normal)
+        return button
     } ()
     
     enum SectionType : Int{
@@ -24,6 +31,14 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     var completedList: [ToDoWork] = [ToDoWork(createDate: "23/03", workTitle: "test", workDetail: "test")]
     
+    // MARK: - ViewDidLoad
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        workListTableView.register(ToDoWorkCell.self, forCellReuseIdentifier: "toDoCell")
+        layoutTableView()
+        workListTableView.delegate = self
+        workListTableView.dataSource = self
+    }
     
     func numberOfSections(in tableView: UITableView) -> Int {
         return 2
@@ -39,12 +54,15 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if let cell = tableView.dequeueReusableCell(withIdentifier: "toDoCell", for: indexPath) as? ToDoWorkCell {
+            cell.delegate = self
+            var toDoItem: ToDoWork!
             if(indexPath.section == SectionType.Todo.rawValue){
                 print("toCel")
-                cell.configCell(toDoWork: todoList[indexPath.row])
+                toDoItem = self.todoList[indexPath.row]
             } else {
-                cell.configCell(toDoWork: completedList[indexPath.row])
+                toDoItem = self.completedList[indexPath.row]
             }
+            cell.configCell(toDoWork: toDoItem)
             return cell
         }
         
@@ -53,10 +71,48 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
+        var itemWorkScreentype: ItemWorkVC.ItemWorkScreentype!
+        if indexPath.section == SectionType.Todo.rawValue {
+            itemWorkScreentype = .Edit
+        } else {
+            itemWorkScreentype = .View
+        }
+        let vc = ItemWorkVC(nibName: nil, bundle: nil,screenType: itemWorkScreentype)
+        vc.itemWork = todoList[indexPath.row]
+        vc.delegate = self
+        
+        self.navigationController?.pushViewController(vc, animated: true)
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         return CGFloat(50)
+    }
+    
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let delete = UIContextualAction(style: .destructive, title: "Delete") { (action, view, nil) in
+            if indexPath.section == SectionType.Todo.rawValue {
+                self.todoList.remove(at: indexPath.row)
+                tableView.reloadData()
+                //tableView.endUpdates()
+            } else {
+                self.completedList.remove(at: indexPath.row)
+                tableView.reloadData()
+                //tableView.endUpdates()
+            }
+        }
+        let compelete = UIContextualAction(style: .normal, title: "Complete") { (action, view, nil) in
+            
+                self.completedList.insert(self.todoList[indexPath.row], at: 0)
+                self.todoList.remove(at: indexPath.row)
+                tableView.reloadData()
+        }
+        compelete.backgroundColor = #colorLiteral(red: 0.2142799043, green: 0.6263519211, blue: 0.9060877955, alpha: 1)
+        
+        if indexPath.section == SectionType.Todo.rawValue {
+            return UISwipeActionsConfiguration(actions: [delete,compelete])
+        } else {
+            return UISwipeActionsConfiguration(actions: [delete])
+        }
     }
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
@@ -89,8 +145,15 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             ])
         return viewIn
     }
-    
+
+
     func layoutTableView() {
+        self.title = "ToDo List"
+        
+        let barBuntonItem = UIBarButtonItem(image: #imageLiteral(resourceName: "icon_plus"), style: .plain, target: self, action: #selector(self.popToAddItem))
+        barBuntonItem.tintColor = .black
+        self.navigationItem.rightBarButtonItem = barBuntonItem
+        
         view.addSubview(workListTableView)
         workListTableView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -101,14 +164,26 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             ])
     }
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        workListTableView.register(ToDoWorkCell.self, forCellReuseIdentifier: "toDoCell")
-        layoutTableView()
-        workListTableView.delegate = self
-        workListTableView.dataSource = self
+    @objc func popToAddItem() {
+        let vc = ItemWorkVC(nibName: nil, bundle: nil, screenType: ItemWorkVC.ItemWorkScreentype.Add)
+        vc.delegate = self
+        self.navigationController?.pushViewController(vc, animated: true)
     }
-
 
 }
 
+extension MainVC: ToDoWorkCellDelegate, ItemWorkVCDelegate {
+    func addItemWork(work: ToDoWork) {
+        self.todoList.insert(work, at: 0)
+        self.workListTableView.reloadData()
+    }
+    
+    func saveItemWork() {
+        print("save")
+        self.workListTableView.reloadData()
+    }
+    
+    func tapCompleted() {
+        print("tap")
+    }
+}
